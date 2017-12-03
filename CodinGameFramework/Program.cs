@@ -79,6 +79,22 @@ namespace CodinGameFramework {
 			internal int A_p = 0;
 			internal int B_p = 0;
 			internal int C_p = 0;
+			internal Code GetCode(int idx) {
+				switch (idx) {
+				case 0: return A;
+				case 1: return B;
+				case 2: return C;
+				default: throw new Exception();
+				}
+			}
+			internal void AddPoints(int idx, int points) {
+				switch (idx) {
+				case 0: A_p += points; break;
+				case 1: B_p += points; break;
+				case 2: C_p += points; break;
+				default: throw new Exception();
+				}
+			}
 		}
 
 
@@ -96,51 +112,27 @@ namespace CodinGameFramework {
 			}
 		}
 
-        static string CodeDir = @"C:\temp\meanmax\";
-        static string DataDir = @"C:\temp\meanmax\";
+		static int[][] permutation3 = { new[]{ 0, 1, 2 }, new[]{ 0, 2, 1 }, new[] { 1, 0, 2 }, new[] { 1, 2, 0 }, new[] { 2, 0, 1 }, new[] { 2, 1, 0 } };
+
+		static string CodeDir = @"C:\temp\meanmax\";
+		static string DataDir = @"C:\temp\meanmax\";
 		static string BigRecordFileName = @"big_battle_log.txt";
 
 		static void RunCodePair(CodePair cp, int loops) {
 			string pair_log = Path.Combine(DataDir, $"battles_{cp.A.name}_{cp.B.name}_{cp.C.name}.log");
 			using (StreamWriter log = new StreamWriter(pair_log)) {
 				for (int i = 0; i < loops; i++) {
+					string seedtxt = "";
 					int seed;
-					int[] res = null;
-					res = Battle(i, cp.A.file, cp.B.file, cp.C.file, log, "", out seed);
-					cp.A_p += res[0];
-					cp.B_p += res[1];
-					cp.C_p += res[2];
-					Console.WriteLine($"loop: {i}  a: {cp.A_p} b: {cp.B_p}  c: {cp.C_p} {Path.GetFileNameWithoutExtension(cp.A.file)} {Path.GetFileNameWithoutExtension(cp.B.file)} {Path.GetFileNameWithoutExtension(cp.C.file)}");
 
-					int[] res2 = Battle(i, cp.A.file, cp.C.file, cp.B.file, log, seed.ToString(), out seed);
-					cp.A_p += res[0];
-					cp.B_p += res[2];
-					cp.C_p += res[1];
-					Console.WriteLine($"loop: {i}  a: {cp.A_p} b: {cp.B_p}  c: {cp.C_p} {Path.GetFileNameWithoutExtension(cp.A.file)} {Path.GetFileNameWithoutExtension(cp.B.file)} {Path.GetFileNameWithoutExtension(cp.C.file)}");
-
-					int[] res3 = Battle(i, cp.B.file, cp.C.file, cp.A.file, log, seed.ToString(), out seed);
-					cp.A_p += res[2];
-					cp.B_p += res[0];
-					cp.C_p += res[1];
-					Console.WriteLine($"loop: {i}  a: {cp.A_p} b: {cp.B_p}  c: {cp.C_p} {Path.GetFileNameWithoutExtension(cp.A.file)} {Path.GetFileNameWithoutExtension(cp.B.file)} {Path.GetFileNameWithoutExtension(cp.C.file)}");
-
-					int[] res4 = Battle(i, cp.B.file, cp.A.file, cp.C.file, log, seed.ToString(), out seed);
-					cp.A_p += res[1];
-					cp.B_p += res[0];
-					cp.C_p += res[2];
-					Console.WriteLine($"loop: {i}  a: {cp.A_p} b: {cp.B_p}  c: {cp.C_p} {Path.GetFileNameWithoutExtension(cp.A.file)} {Path.GetFileNameWithoutExtension(cp.B.file)} {Path.GetFileNameWithoutExtension(cp.C.file)}");
-
-					int[] res5 = Battle(i, cp.C.file, cp.A.file, cp.B.file, log, seed.ToString(), out seed);
-					cp.A_p += res[1];
-					cp.B_p += res[2];
-					cp.C_p += res[0];
-					Console.WriteLine($"loop: {i}  a: {cp.A_p} b: {cp.B_p}  c: {cp.C_p} {Path.GetFileNameWithoutExtension(cp.A.file)} {Path.GetFileNameWithoutExtension(cp.B.file)} {Path.GetFileNameWithoutExtension(cp.C.file)}");
-
-					int[] res6 = Battle(i, cp.C.file, cp.B.file, cp.A.file, log, seed.ToString(), out seed);
-					cp.A_p += res[2];
-					cp.B_p += res[1];
-					cp.C_p += res[0];
-					Console.WriteLine($"loop: {i}  a: {cp.A_p} b: {cp.B_p}  c: {cp.C_p} {Path.GetFileNameWithoutExtension(cp.A.file)} {Path.GetFileNameWithoutExtension(cp.B.file)} {Path.GetFileNameWithoutExtension(cp.C.file)}");
+					foreach(var p in permutation3) { 
+						var res = Battle(i, cp.GetCode(p[0]).file, cp.GetCode(p[1]).file, cp.GetCode(p[1]).file, log, seedtxt, out seed);
+						cp.AddPoints(p[0], res[0]);
+						cp.AddPoints(p[1], res[1]);
+						cp.AddPoints(p[2], res[2]);
+						seedtxt = seed.ToString();
+						Console.WriteLine($"loop: {i}  a: {cp.A_p} b: {cp.B_p}  c: {cp.C_p} {Path.GetFileNameWithoutExtension(cp.A.file)} {Path.GetFileNameWithoutExtension(cp.B.file)} {Path.GetFileNameWithoutExtension(cp.C.file)}");
+					}
 				}
 
 				string ll = $"Final: {cp.A_p} {cp.B_p} {cp.C_p} {cp.A.name} {cp.B.name} {cp.C.name}";
